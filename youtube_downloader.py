@@ -22,8 +22,6 @@ def download_as_mp3(video_url):
 BACKGROUND_COLOR = "#303030"
 COLOR_1 = "#3796F6"
 COLOR_2 = "#626262"
-COLOR_3 = "#505050"
-
 
 class YoutubeDownloader(Tk):
 
@@ -73,7 +71,10 @@ class YoutubeDownloader(Tk):
         # Show Section
         self.label_show = Label(self, text="", bg=BACKGROUND_COLOR, foreground=COLOR_1, font=("Arial", 10),
                                 justify=LEFT)
-        self.label_show.pack(pady=10)
+        self.label_show.pack(pady=(15,5))
+
+        #Bing Enter button
+        self.bind('<Return>', self.call_def_with_enter)
 
     def check_url(self):
         checks = True
@@ -121,6 +122,7 @@ class YoutubeDownloader(Tk):
                 text = text + str(i) + "  :  " + self.song_list_name[i] + "\n"
                 text = text + "       " + self.song_list_url[i] + "\n" + "\n"
             self.label_show.config(text=text)
+            self.geometry("700x"+str(200+(50*len(self.song_list_url))))
 
     def clear(self):
         self.song_list_url = []
@@ -143,6 +145,12 @@ class YoutubeDownloader(Tk):
         self.mode = "song_list"
         self.button_mode_song_list.config(font=("Arial", 12, "underline"))
         self.button_mode_singe_song.config(font=("Arial", 12))
+
+    def call_def_with_enter(self,e):
+        if self.mode == "single_song":
+            self.download()
+        else:
+            self.add()
 
     def clear_input(self, e):
         self.entry_insert_url.delete(0, END)
