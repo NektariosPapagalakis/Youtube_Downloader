@@ -5,9 +5,9 @@ import youtube_dl
 from pytube import YouTube
 
 
-def download_as_mp3(video_url):
+def download_as_mp3(video_url, video_title):
     video_info = youtube_dl.YoutubeDL().extract_info(url=video_url, download=False)
-    filename = f"{video_info['title']}.mp3"
+    filename = video_title + ".mp3"
     options = {
         'format': 'bestaudio/best',
         'keepvideo': False,
@@ -26,35 +26,6 @@ def get_video_name(url):
 BACKGROUND_COLOR = "#303030"
 COLOR_1 = "#3796F6"
 COLOR_2 = "#626262"
-
-
-class ChangeName(Tk):
-    def __init__(self, url):
-        super(ChangeName, self).__init__()
-        self.title('Change Name')
-        self.configure(background=BACKGROUND_COLOR)
-
-        label_url = Label(self, text=url, bg=BACKGROUND_COLOR, foreground=COLOR_1, font=("Arial", 10))
-        label_url.pack(pady=10,padx=50)
-
-        entry_name = Entry(self,width=50, background=COLOR_2, foreground=COLOR_1, font=("Arial", 12))
-        entry_name.delete(0, END)
-        entry_name.insert(0,get_video_name(url))
-        entry_name.pack(pady=(0,10),padx=50)
-
-        frame_buttons = Frame(self, background=BACKGROUND_COLOR)
-        frame_buttons.pack()
-        # Set
-        self.button_set_name = Button(frame_buttons, text="Set", bg=COLOR_2, foreground=COLOR_1,
-                                            font=("Arial", 15), width=12, cursor="hand2")
-        self.button_set_name.grid(row=0, column=0, pady=(0, 10),padx=10)
-        # ADD
-        self.button_cansel = Button(frame_buttons, text="Cansel", bg=COLOR_2, foreground=COLOR_1,
-                                      font=("Arial", 15), width=12,command=self.on_closing, cursor="hand2")
-        self.button_cansel.grid(row=0, column=1, pady=(0, 10),padx=10)
-
-    def on_closing(self):
-        self.destroy()
 
 
 class YoutubeDownloader(Tk):
@@ -94,7 +65,7 @@ class YoutubeDownloader(Tk):
         # Download
         self.button_download_video = Button(frame_buttons, text="Download", bg=COLOR_2, foreground=COLOR_1,
                                             command=self.download, font=("Arial", 17), width=15, cursor="hand2")
-        self.button_download_video.grid(row=0, column=0, pady=(0, 10))
+        self.button_download_video.grid(row=0, columnspan=2, pady=(0, 10))
         # ADD
         self.button_add_song = Button(frame_buttons, text="Add", bg=COLOR_2, foreground=COLOR_1,
                                       font=("Arial", 17), width=15, command=self.add, cursor="hand2")
@@ -124,23 +95,32 @@ class YoutubeDownloader(Tk):
     def download(self):
         if self.mode == "single_song":
             if self.check_url():
+                error = False
+                url = self.entry_insert_url.get()
                 try:
-                    url = self.entry_insert_url.get()
-                    download_as_mp3(url)
+                    download_as_mp3(url, get_video_name(url))
                     messagebox.showinfo('Complete', 'Download is Complete')
                 except youtube_dl.utils.DownloadError:
                     messagebox.showerror("Error", "You must provide a url from Youtube")
+                    error = True
                 except:
                     messagebox.showerror("Error", "Something went wrong !")
+                    error = True
+                if not error:
+                    messagebox.showinfo('Complete', 'Download is Complete')
         else:
+            error = False
             for url in self.song_list_url:
                 try:
-                    download_as_mp3(url)
+                    download_as_mp3(url, get_video_name(url))
                 except youtube_dl.utils.DownloadError:
                     messagebox.showerror("Error", "You must provide a url from Youtube")
+                    error = True
                 except:
+                    error = True
                     messagebox.showerror("Error", "Something went wrong !")
-            messagebox.showinfo('Complete', 'Download is Complete')
+            if not error:
+                messagebox.showinfo('Complete', 'Download is Complete')
 
     def add(self):
         if self.check_url():
@@ -182,10 +162,6 @@ class YoutubeDownloader(Tk):
 
     def clear_input(self, e):
         self.entry_insert_url.delete(0, END)
-
-    def change_name(self):
-        if self.check_url():
-            ChangeName(self.entry_insert_url.get())
 
     def on_closing(self):
         self.destroy()
