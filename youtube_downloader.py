@@ -138,29 +138,37 @@ class YoutubeDownloader(Tk):
                     messagebox.showerror("Error", "Something went wrong !")
                 # ERROR: unable to download video data: HTTP Error 403: Forbidden
         else:
-            self.progress_bar_download_progress.pack()
-            self.label_download_progress_percentage.pack(padx=5, pady=1, side="right")
+            self.label_progress.config(text="Please wait...")
+            self.label_progress.update()
+            if len(self.song_list_url) == 0:
+                messagebox.showerror("Error", "Your list is empty")
+            else:
+                self.progress_bar_download_progress.pack()
+                self.geometry("700x" + str(300 + (60 * self.count_of_songs)))
+                self.label_download_progress_percentage.pack(padx=5, pady=1, side="right")
 
-            error = False
-            downloaded_urls = 0
-            for url in self.song_list_url:
-                if url != "x":
-                    if check_url(url):
-                        try:
-                            download_as_mp3(url, get_video_name(url))
-                            downloaded_urls = downloaded_urls + 1
-                            self.update_progress_bar(downloaded_urls)
+                error = False
+                downloaded_urls = 0
+                for url in self.song_list_url:
+                    if url != "x":
+                        if check_url(url):
+                            try:
+                                download_as_mp3(url, get_video_name(url))
+                                downloaded_urls = downloaded_urls + 1
+                                self.label_progress.config(text="")
+                                self.label_progress.update()
+                                self.update_progress_bar(downloaded_urls)
 
-                        except youtube_dl.utils.DownloadError:
-                            messagebox.showerror("Error", "You must provide a url from Youtube")
-                            error = True
-                        except:
-                            error = True
-                            messagebox.showerror("Error", "Something went wrong !")
-            if not error:
-                messagebox.showinfo('Complete', 'Download is Complete')
-            elif downloaded_urls < self.count_of_songs:
-                messagebox.showerror("Error", f"{downloaded_urls} out of {self.count_of_songs} were Downloaded")
+                            except youtube_dl.utils.DownloadError:
+                                messagebox.showerror("Error", "You must provide a url from Youtube")
+                                error = True
+                            except:
+                                error = True
+                                messagebox.showerror("Error", "Something went wrong !")
+                if not error:
+                    messagebox.showinfo('Complete', 'Download is Complete')
+                elif downloaded_urls < self.count_of_songs:
+                    messagebox.showerror("Error", f"{downloaded_urls} out of {self.count_of_songs} were Downloaded")
 
     def add(self):
         video_url = self.entry_insert_url.get()
@@ -178,6 +186,10 @@ class YoutubeDownloader(Tk):
             label.pack_forget()
         self.song_list_labels = []
         self.geometry("700x250")
+        self.count_of_songs = 0
+        self.progress_bar_download_progress.pack_forget()
+        self.label_download_progress_percentage.pack_forget()
+        self.entry_insert_url.delete(0, END)
 
     def update_progress_bar(self, number):
         num = (number * 100) / self.count_of_songs
@@ -193,12 +205,17 @@ class YoutubeDownloader(Tk):
             self.button_add_song.grid(row=1, column=0, padx=10)
             self.button_clear_song.grid(row=1, column=1, padx=10)
             self.frame_song_list.pack(fill=BOTH, pady=(0, 10))
+            self.label_progress.config(text="")
+            self.label_progress.update()
         else:
             self.button_mode.config(text="Mode Song List : OFF", font=("Arial", 12))
             self.mode = "single_song"
             self.button_add_song.grid_forget()
             self.button_clear_song.grid_forget()
             self.frame_song_list.pack_forget()
+            self.progress_bar_download_progress.pack_forget()
+            self.label_download_progress_percentage.pack_forget()
+            self.clear()
 
     def call_def_with_enter(self, e):
         if self.mode == "single_song":
