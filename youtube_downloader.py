@@ -138,7 +138,6 @@ class YoutubeDownloader(Tk):
                     messagebox.showerror("Error", "Something went wrong !")
                 # ERROR: unable to download video data: HTTP Error 403: Forbidden
         else:
-            import time
             self.progress_bar_download_progress.pack()
             self.label_download_progress_percentage.pack(padx=5, pady=1, side="right")
 
@@ -148,10 +147,9 @@ class YoutubeDownloader(Tk):
                 if url != "x":
                     if check_url(url):
                         try:
-                            # download_as_mp3(url, get_video_name(url))
+                            download_as_mp3(url, get_video_name(url))
                             downloaded_urls = downloaded_urls + 1
                             self.update_progress_bar(downloaded_urls)
-                            time.sleep(1)
 
                         except youtube_dl.utils.DownloadError:
                             messagebox.showerror("Error", "You must provide a url from Youtube")
