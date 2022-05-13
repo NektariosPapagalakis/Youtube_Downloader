@@ -1,8 +1,8 @@
 from tkinter import *
 from tkinter import messagebox
-from tkinter.simpledialog import askstring
 import youtube_dl
 from pytube import YouTube
+from tkinter import ttk
 
 
 def download_as_mp3(video_url, video_title):
@@ -87,54 +87,82 @@ class YoutubeDownloader(Tk):
         # Clear
         self.button_clear_song = Button(frame_buttons, text="Clear", bg=COLOR_2, foreground=COLOR_1,
                                         font=("Arial", 17), width=15, command=self.clear, cursor="hand2")
+        # Progress Bar
+        frame_download_progress_bar = Frame(self, background=BACKGROUND_COLOR)
+        frame_download_progress_bar.pack()
+        self.progress_bar_download_progress = ttk.Progressbar(frame_download_progress_bar, orient=HORIZONTAL,
+                                                              length=500,
+                                                              mode="determinate")
+        self.label_download_progress_percentage = Label(frame_download_progress_bar, text="0%",
+                                                        background=BACKGROUND_COLOR, foreground=COLOR_1,
+                                                        font=("Arial", 12))
+
+        # Show song_list
+        self.frame_song_list = Frame(self, bg=BACKGROUND_COLOR)
+
         # Bing Enter button
         self.bind('<Return>', self.call_def_with_enter)
 
         self.label_progress = Label(self, text="", bg=BACKGROUND_COLOR, foreground=COLOR_1,
-                                 font=("Arial", 17))
+                                    font=("Arial", 17))
         self.label_progress.pack()
 
     def add_song_label(self, text):
-        label = Label(self, text=text, bg=BACKGROUND_COLOR, foreground=COLOR_1, font=("Arial", 10),
+        label = Label(self.frame_song_list, text=text, bg=BACKGROUND_COLOR, foreground=COLOR_1, font=("Arial", 10),
                       justify=LEFT)
         label.pack(pady=5, anchor="w", padx=(50, 0))
         self.song_list_labels.append(label)
         number = len(self.song_list_labels) - 1
         label.bind("<Button-1>", lambda event: self.remove_url(number))
-        self.geometry("700x" + str(250 + (50 * self.count_of_songs)))
+        self.geometry("700x" + str(250 + (60 * self.count_of_songs)))
 
     def download(self):
         if self.mode == "single_song":
+            self.label_progress.config(text="Please wait...")
+            self.label_progress.update()
             url = self.entry_insert_url.get()
             if check_url(url):
-                error = False
                 try:
                     download_as_mp3(url, get_video_name(url))
+                    self.entry_insert_url.delete(0, END)
+                    self.label_progress.config(text="")
+                    self.label_progress.update()
                     messagebox.showinfo('Complete', 'Download is Complete')
                 except youtube_dl.utils.DownloadError:
+                    self.label_progress.config(text="")
+                    self.label_progress.update()
                     messagebox.showerror("Error", "You must provide a url from Youtube")
-                    error = True
                 except:
+                    self.label_progress.config(text="")
+                    self.label_progress.update()
                     messagebox.showerror("Error", "Something went wrong !")
-                    error = True
-                if not error:
-                    messagebox.showinfo('Complete', 'Download is Complete')
+                # ERROR: unable to download video data: HTTP Error 403: Forbidden
         else:
+            import time
+            self.progress_bar_download_progress.pack()
+            self.label_download_progress_percentage.pack(padx=5, pady=1, side="right")
+
             error = False
+            downloaded_urls = 0
             for url in self.song_list_url:
                 if url != "x":
                     if check_url(url):
                         try:
-                            download_as_mp3(url, get_video_name(url))
+                            # download_as_mp3(url, get_video_name(url))
+                            downloaded_urls = downloaded_urls + 1
+                            self.update_progress_bar(downloaded_urls)
+                            time.sleep(1)
+
                         except youtube_dl.utils.DownloadError:
                             messagebox.showerror("Error", "You must provide a url from Youtube")
                             error = True
                         except:
                             error = True
                             messagebox.showerror("Error", "Something went wrong !")
-                        self.label_progress.config(text=self.label_progress.cget("text")+"1")
             if not error:
                 messagebox.showinfo('Complete', 'Download is Complete')
+            elif downloaded_urls < self.count_of_songs:
+                messagebox.showerror("Error", f"{downloaded_urls} out of {self.count_of_songs} were Downloaded")
 
     def add(self):
         video_url = self.entry_insert_url.get()
@@ -153,19 +181,26 @@ class YoutubeDownloader(Tk):
         self.song_list_labels = []
         self.geometry("700x250")
 
+    def update_progress_bar(self, number):
+        num = (number * 100) / self.count_of_songs
+        self.progress_bar_download_progress["value"] = round(num, 2)
+        self.progress_bar_download_progress.update()
+        self.label_download_progress_percentage.config(text=str(round(num, 2)) + "%")
+        self.label_download_progress_percentage.update()
+
     def switch_mode(self):
         if self.mode == "single_song":
             self.button_mode.config(text="Mode Song List : ON", font=("Arial", 12, "underline"))
             self.mode = "song_list"
             self.button_add_song.grid(row=1, column=0, padx=10)
             self.button_clear_song.grid(row=1, column=1, padx=10)
-            # self.label_show_song_list.pack(pady=(15, 5))
+            self.frame_song_list.pack(fill=BOTH, pady=(0, 10))
         else:
             self.button_mode.config(text="Mode Song List : OFF", font=("Arial", 12))
             self.mode = "single_song"
             self.button_add_song.grid_forget()
             self.button_clear_song.grid_forget()
-            self.label_show_song_list.pack_forget()
+            self.frame_song_list.pack_forget()
 
     def call_def_with_enter(self, e):
         if self.mode == "single_song":
