@@ -6,7 +6,7 @@ from tkinter import ttk
 import threading
 
 
-def download_as_mp3(video_url, video_title):
+def download_as_mp3(video_url, video_title,gui):
     video_info = youtube_dl.YoutubeDL().extract_info(url=video_url, download=False)
     filename = video_title + ".mp3"
     options = {
@@ -123,17 +123,16 @@ class YoutubeDownloader(Tk):
             self.label_progress.update()
             url = self.entry_insert_url.get()
             if check_url(url):
+                error = ""
                 try:
                     # download_as_mp3(url, get_video_name(url))
-                    threading.Thread(target=download_as_mp3, args=(url, get_video_name(url)), ).start()
-                    self.entry_insert_url.delete(0, END)
-                    self.label_progress.config(text="")
-                    self.label_progress.update()
-                    messagebox.showinfo('Complete', 'Download is Complete')
+                    download_thread = threading.Thread(target=download_as_mp3, args=(url, get_video_name(url), self, ))
+                    download_thread.start()
                 except youtube_dl.utils.DownloadError:
-                    self.label_progress.config(text="")
-                    self.label_progress.update()
-                    messagebox.showerror("Error", "You must provide a url from Youtube")
+                    error = "You must provide a url from Youtube"
+                except :
+                    error = "Something, went wrong"
+                self.update_gui_when_download_is_finished(error)
 
         else:
             self.label_progress.config(text="Please wait...")
@@ -167,6 +166,16 @@ class YoutubeDownloader(Tk):
                     messagebox.showinfo('Complete', 'Download is Complete')
                 elif downloaded_urls < self.count_of_songs:
                     messagebox.showerror("Error", f"{downloaded_urls} out of {self.count_of_songs} were Downloaded")
+
+    def update_gui_when_download_is_finished(self, error):
+        self.label_progress.config(text="")
+        self.label_progress.update()
+        if error == "":
+            self.entry_insert_url.delete(0, END)
+            messagebox.showinfo('Complete', 'Download is Complete')
+        else:
+            messagebox.showerror("Error", error)
+
 
     def add(self):
         video_url = self.entry_insert_url.get()
