@@ -3,6 +3,7 @@ from tkinter import messagebox
 import youtube_dl
 from pytube import YouTube
 from tkinter import ttk
+import threading
 
 
 def download_as_mp3(video_url, video_title):
@@ -123,7 +124,8 @@ class YoutubeDownloader(Tk):
             url = self.entry_insert_url.get()
             if check_url(url):
                 try:
-                    download_as_mp3(url, get_video_name(url))
+                    # download_as_mp3(url, get_video_name(url))
+                    threading.Thread(target=download_as_mp3, args=(url, get_video_name(url)), ).start()
                     self.entry_insert_url.delete(0, END)
                     self.label_progress.config(text="")
                     self.label_progress.update()
@@ -132,11 +134,7 @@ class YoutubeDownloader(Tk):
                     self.label_progress.config(text="")
                     self.label_progress.update()
                     messagebox.showerror("Error", "You must provide a url from Youtube")
-                except:
-                    self.label_progress.config(text="")
-                    self.label_progress.update()
-                    messagebox.showerror("Error", "Something went wrong !")
-                # ERROR: unable to download video data: HTTP Error 403: Forbidden
+
         else:
             self.label_progress.config(text="Please wait...")
             self.label_progress.update()
@@ -237,6 +235,7 @@ class YoutubeDownloader(Tk):
             self.song_list_name[number_of_url] = "x"
             for x in self.song_list_name:
                 print(x)
+
 
     def on_closing(self):
         self.destroy()
