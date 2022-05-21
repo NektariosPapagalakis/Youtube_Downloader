@@ -31,9 +31,7 @@ Once you are done press the downolad button to start the download
 ## Some notes
 1. When you switch between modes the list of songs gets deleted.
 2. By just clicking on the "Video url" field it's content get deleted.
-3. Unfortunately an issue that I could not resolve is that when the download is in progress the window will be marked as "Not responding"<br>
-and this is something but do't be alared when you see it.
-4. If ther is another song with the same name the song is going to be skipped.
-5. If tou press the download button agean after the download process is complete in either modes the program is going to<br>
+3. If ther is another song with the same name the song is going to be skipped.
+4. If tou press the download button agean after the download process is complete in either modes the program is going to<br>
 start dowloading the same song or list again.
-6. The title of the song is the same as in the youtube video.
+5. The title of the song is the same as in the youtube video.
