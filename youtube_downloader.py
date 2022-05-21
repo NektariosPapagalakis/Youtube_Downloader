@@ -6,7 +6,7 @@ from tkinter import ttk
 import threading
 
 
-def download_as_mp3(video_url, video_title,gui):
+def download_as_mp3(video_url, video_title):
     video_info = youtube_dl.YoutubeDL().extract_info(url=video_url, download=False)
     filename = video_title + ".mp3"
     options = {
@@ -117,57 +117,16 @@ class YoutubeDownloader(Tk):
         label.bind("<Button-1>", lambda event: self.remove_url(number))
         self.geometry("700x" + str(250 + (60 * self.count_of_songs)))
 
-    def download(self):
-        if self.mode == "single_song":
-            self.label_progress.config(text="Please wait...")
-            self.label_progress.update()
-            url = self.entry_insert_url.get()
-            if check_url(url):
-                error = ""
-                try:
-                    # download_as_mp3(url, get_video_name(url))
-                    download_thread = threading.Thread(target=download_as_mp3, args=(url, get_video_name(url), self, ))
-                    download_thread.start()
-                except youtube_dl.utils.DownloadError:
-                    error = "You must provide a url from Youtube"
-                except :
-                    error = "Something, went wrong"
-                self.update_gui_when_download_is_finished(error)
-
-        else:
-            self.label_progress.config(text="Please wait...")
-            self.label_progress.update()
-            if len(self.song_list_url) == 0:
-                messagebox.showerror("Error", "Your list is empty")
-            else:
-                self.progress_bar_download_progress.pack()
-                self.geometry("700x" + str(300 + (60 * self.count_of_songs)))
-                self.label_download_progress_percentage.pack(padx=5, pady=1, side="right")
-
-                error = False
-                downloaded_urls = 0
-                for url in self.song_list_url:
-                    if url != "x":
-                        if check_url(url):
-                            try:
-                                download_as_mp3(url, get_video_name(url))
-                                downloaded_urls = downloaded_urls + 1
-                                self.label_progress.config(text="")
-                                self.label_progress.update()
-                                self.update_progress_bar(downloaded_urls)
-
-                            except youtube_dl.utils.DownloadError:
-                                messagebox.showerror("Error", "You must provide a url from Youtube")
-                                error = True
-                            except:
-                                error = True
-                                messagebox.showerror("Error", "Something went wrong !")
-                if not error:
-                    messagebox.showinfo('Complete', 'Download is Complete')
-                elif downloaded_urls < self.count_of_songs:
-                    messagebox.showerror("Error", f"{downloaded_urls} out of {self.count_of_songs} were Downloaded")
-
-    def update_gui_when_download_is_finished(self, error):
+    def download_thread_proces_single_song(self, url):
+        self.button_mode.config(state=DISABLED)
+        print("ok 2")
+        error = ""
+        try:
+            download_as_mp3(url, get_video_name(url))
+        except youtube_dl.utils.DownloadError:
+            error = "You must provide a url from Youtube"
+        except:
+            error = "Something, went wrong"
         self.label_progress.config(text="")
         self.label_progress.update()
         if error == "":
@@ -175,6 +134,53 @@ class YoutubeDownloader(Tk):
             messagebox.showinfo('Complete', 'Download is Complete')
         else:
             messagebox.showerror("Error", error)
+        self.button_mode.config(state=NORMAL)
+
+    def download_thread_proces_song_list(self):
+        self.button_mode.config(state=DISABLED)
+        error = False
+        downloaded_urls = 0
+        for url in self.song_list_url:
+            if url != "x":
+                if check_url(url):
+                    try:
+                        download_as_mp3(url, get_video_name(url))
+                        downloaded_urls = downloaded_urls + 1
+                        self.label_progress.config(text="")
+                        self.label_progress.update()
+                        self.update_progress_bar(downloaded_urls)
+
+                    except youtube_dl.utils.DownloadError:
+                        messagebox.showerror("Error", "You must provide a url from Youtube")
+                        error = True
+                    except:
+                        error = True
+                        messagebox.showerror("Error", "Something went wrong !")
+        if not error:
+            messagebox.showinfo('Complete', 'Download is Complete')
+        elif downloaded_urls < self.count_of_songs:
+            messagebox.showerror("Error", f"{downloaded_urls} out of {self.count_of_songs} were Downloaded")
+        self.button_mode.config(state=NORMAL)
+
+
+    def download(self):
+        if self.mode == "single_song":
+            self.label_progress.config(text="Please wait...")
+            self.label_progress.update()
+            url = self.entry_insert_url.get()
+            if check_url(url):
+                threading.Thread(target=self.download_thread_proces_single_song, args=(url,)).start()
+        else:
+            if len(self.song_list_url) == 0:
+                messagebox.showerror("Error", "Your list is empty")
+            else:
+                self.label_progress.config(text="Please wait...")
+                self.label_progress.update()
+                self.progress_bar_download_progress.pack()
+                self.geometry("700x" + str(300 + (60 * self.count_of_songs)))
+                self.label_download_progress_percentage.pack(padx=5, pady=1, side="right")
+                threading.Thread(target=self.download_thread_proces_song_list,).start()
+
 
 
     def add(self):
@@ -244,7 +250,6 @@ class YoutubeDownloader(Tk):
             self.song_list_name[number_of_url] = "x"
             for x in self.song_list_name:
                 print(x)
-
 
     def on_closing(self):
         self.destroy()
