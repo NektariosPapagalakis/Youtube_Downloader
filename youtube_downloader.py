@@ -162,7 +162,6 @@ class YoutubeDownloader(Tk):
             messagebox.showerror("Error", f"{downloaded_urls} out of {self.count_of_songs} were Downloaded")
         self.button_mode.config(state=NORMAL)
 
-
     def download(self):
         if self.mode == "single_song":
             self.label_progress.config(text="Please wait...")
@@ -179,9 +178,7 @@ class YoutubeDownloader(Tk):
                 self.progress_bar_download_progress.pack()
                 self.geometry("700x" + str(300 + (60 * self.count_of_songs)))
                 self.label_download_progress_percentage.pack(padx=5, pady=1, side="right")
-                threading.Thread(target=self.download_thread_proces_song_list,).start()
-
-
+                threading.Thread(target=self.download_thread_proces_song_list, ).start()
 
     def add(self):
         video_url = self.entry_insert_url.get()
